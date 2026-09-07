@@ -1,0 +1,284 @@
+{
+	"info": {
+		"_postman_id": "photohouse-mobile-api-v1",
+		"name": "PhotoHouse Mobile API (v1) - Minimal Integration Checklist",
+		"description": "Postman Collection for PhotoHouse Mobile App Minimal Integration Checklist APIs.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://photohouse.appsaga.io/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "eventUuid",
+			"value": "9f1c0f0e-1a2b-4c3d-8e9f-000000000001",
+			"type": "string"
+		},
+		{
+			"key": "albumId",
+			"value": "41",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Public & Auth",
+			"item": [
+				{
+					"name": "1.1 Platform Branding",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/platform/branding",
+							"host": ["{{baseUrl}}"],
+							"path": ["platform", "branding"]
+						},
+						"description": "Fetch white-label branding (app name, logo URLs) to theme splash/login screen."
+					}
+				},
+				{
+					"name": "1.2 Login (Issue Bearer Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set('token', jsonData.token);",
+									"    console.log('Saved token to collection variable: ' + jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"you@studio.com\",\n  \"password\": \"secret123\",\n  \"device_name\": \"iPhone 15 Pro - Maulik Mobile\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Log in with credentials and stable device_name to receive Bearer token."
+					}
+				},
+				{
+					"name": "1.3 Validate Current User (On Launch)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/user",
+							"host": ["{{baseUrl}}"],
+							"path": ["user"]
+						},
+						"description": "Verify stored Bearer token on app launch. 401 response requires re-login."
+					}
+				},
+				{
+					"name": "1.4 Logout (Revoke Token)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "logout"]
+						},
+						"description": "Revoke current device token on sign-out."
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Events & Albums",
+			"item": [
+				{
+					"name": "2.1 List Events",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/events?type=wedding",
+							"host": ["{{baseUrl}}"],
+							"path": ["events"],
+							"query": [
+								{ "key": "type", "value": "wedding" }
+							]
+						},
+						"description": "List events (cursor-paginated, 50 per page)."
+					}
+				},
+				{
+					"name": "2.2 Event Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/events/{{eventUuid}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["events", "{{eventUuid}}"]
+						},
+						"description": "Fetch single event detail by UUID."
+					}
+				},
+				{
+					"name": "2.3 List Event Albums",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/events/{{eventUuid}}/albums",
+							"host": ["{{baseUrl}}"],
+							"path": ["events", "{{eventUuid}}", "albums"]
+						},
+						"description": "List albums for event. Note: numeric album_id is used for uploads."
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Direct Cloudflare R2 Upload Flow",
+			"item": [
+				{
+					"name": "3.1 Presign Upload Batch (<= 100 files)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"files\": [\n    {\n      \"client_id\": \"postman-1\",\n      \"filename\": \"IMG_4821.jpg\",\n      \"mime_type\": \"image/jpeg\",\n      \"file_size\": 5242880\n    },\n    {\n      \"client_id\": \"postman-2\",\n      \"filename\": \"IMG_4822.jpg\",\n      \"mime_type\": \"image/jpeg\",\n      \"file_size\": 4194304\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/events/{{eventUuid}}/upload/presign-batch",
+							"host": ["{{baseUrl}}"],
+							"path": ["events", "{{eventUuid}}", "upload", "presign-batch"]
+						},
+						"description": "Request Cloudflare R2 presigned upload URLs for batch of up to 100 files."
+					}
+				},
+				{
+					"name": "3.2 PUT Bytes to Cloudflare R2",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "image/jpeg" }
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": ""
+							}
+						},
+						"url": {
+							"raw": "<PASTE_PRESIGNED_URL_HERE>",
+							"host": ["<PASTE_PRESIGNED_URL_HERE>"]
+						},
+						"description": "Upload raw file bytes directly to Cloudflare R2 presigned URL. DO NOT send Authorization header."
+					}
+				},
+				{
+					"name": "3.3 Register Uploaded Photo Batch",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"album_id\": 41,\n  \"uploads\": [\n    {\n      \"client_id\": \"postman-1\",\n      \"storage_path\": \"<storage_path_from_presign>\",\n      \"filename\": \"IMG_4821.jpg\",\n      \"mime_type\": \"image/jpeg\",\n      \"file_size\": 5242880\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/events/{{eventUuid}}/upload/register-batch",
+							"host": ["{{baseUrl}}"],
+							"path": ["events", "{{eventUuid}}", "upload", "register-batch"]
+						},
+						"description": "Register uploaded Cloudflare R2 storage paths with backend database."
+					}
+				},
+				{
+					"name": "3.4 Close Upload Session",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"total_files\": 2,\n  \"completed_files\": 2,\n  \"failed_files\": 0,\n  \"album_id\": 41\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/events/{{eventUuid}}/upload/batch-complete",
+							"host": ["{{baseUrl}}"],
+							"path": ["events", "{{eventUuid}}", "upload", "batch-complete"]
+						},
+						"description": "Record and close upload session."
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Subscription & Quota",
+			"item": [
+				{
+					"name": "4.1 Get Subscription & Storage Quota",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/subscription",
+							"host": ["{{baseUrl}}"],
+							"path": ["subscription"]
+						},
+						"description": "Fetch active subscription, plan details, storage usage, and can_create_event flag."
+					}
+				}
+			]
+		}
+	]
+}
