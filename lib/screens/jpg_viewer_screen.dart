@@ -11,12 +11,7 @@ class JpgPhoto {
   final String? assetPath;
   final File? file;
 
-  JpgPhoto({
-    required this.id,
-    required this.name,
-    this.assetPath,
-    this.file,
-  });
+  JpgPhoto({required this.id, required this.name, this.assetPath, this.file});
 }
 
 class JpgViewerScreen extends StatefulWidget {
@@ -125,7 +120,10 @@ class _JpgViewerScreenState extends State<JpgViewerScreen> {
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 20.0,
+              horizontal: 16.0,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,10 +143,7 @@ class _JpgViewerScreenState extends State<JpgViewerScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 12.0),
                   child: Text(
                     'Add .JPG Photos',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -203,7 +198,10 @@ class _JpgViewerScreenState extends State<JpgViewerScreen> {
                   title: const Text('Add Sample JPG Photo 1'),
                   onTap: () {
                     Navigator.pop(context);
-                    _addSampleJpg('assets/images/sample1.jpg', 'Mountain_House.jpg');
+                    _addSampleJpg(
+                      'assets/images/sample1.jpg',
+                      'Mountain_House.jpg',
+                    );
                   },
                 ),
                 ListTile(
@@ -218,7 +216,10 @@ class _JpgViewerScreenState extends State<JpgViewerScreen> {
                   title: const Text('Add Sample JPG Photo 2'),
                   onTap: () {
                     Navigator.pop(context);
-                    _addSampleJpg('assets/images/sample2.jpg', 'Autumn_Studio.jpg');
+                    _addSampleJpg(
+                      'assets/images/sample2.jpg',
+                      'Autumn_Studio.jpg',
+                    );
                   },
                 ),
               ],
@@ -330,12 +331,12 @@ class _JpgViewerScreenState extends State<JpgViewerScreen> {
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Center(
-                                  child: Icon(
-                                    Icons.broken_image,
-                                    color: palette.accentPrimary,
-                                    size: 64,
-                                  ),
-                                ),
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: palette.accentPrimary,
+                                        size: 64,
+                                      ),
+                                    ),
                               ),
                       ),
                     ),
@@ -419,11 +420,12 @@ class _JpgViewerScreenState extends State<JpgViewerScreen> {
                                         : Image.asset(
                                             photo.assetPath!,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) =>
-                                                Icon(
-                                              Icons.image,
-                                              color: palette.textMuted,
-                                            ),
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    Icon(
+                                                      Icons.image,
+                                                      color: palette.textMuted,
+                                                    ),
                                           ),
                                     Positioned(
                                       top: 4,
@@ -434,8 +436,12 @@ class _JpgViewerScreenState extends State<JpgViewerScreen> {
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withValues(alpha: 0.7),
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                         child: Text(
                                           'JPG',
