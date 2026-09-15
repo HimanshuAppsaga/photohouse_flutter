@@ -203,6 +203,66 @@ void main() {
       expect(map['plan']['name'], 'Starter');
       expect(map['usage']['storage_percent'], 50.0);
     });
+
+    test('SubscriptionModel populates default availablePlans when plans array is omitted', () {
+      final jsonMap = {
+        'data': {
+          'status': 'active',
+          'is_active': true,
+          'plan': {
+            'id': 2,
+            'name': 'Professional',
+            'slug': 'professional',
+            'price_inr': 1499,
+          },
+        },
+      };
+
+      final sub = SubscriptionModel.fromJson(jsonMap);
+      expect(sub.availablePlans.length, 3);
+      expect(sub.availablePlans[0].name, 'Starter');
+      expect(sub.availablePlans[0].resolvedPriceFormatted, '₹899/mo');
+      expect(sub.availablePlans[0].resolvedFeatures, contains('Unlimited events'));
+      expect(sub.availablePlans[1].name, 'Professional');
+      expect(sub.availablePlans[1].resolvedPriceFormatted, '₹1,499/mo');
+      expect(sub.availablePlans[2].name, 'Studio');
+      expect(sub.availablePlans[2].resolvedPriceFormatted, '₹2,099/mo');
+      expect(sub.isCurrentPlan(sub.availablePlans[1]), true);
+      expect(sub.isCurrentPlan(sub.availablePlans[0]), false);
+    });
+
+    test('SubscriptionModel parses dynamic plans array from API response', () {
+      final jsonMap = {
+        'data': {
+          'status': 'active',
+          'is_active': true,
+          'plan': {
+            'id': 10,
+            'name': 'Custom Pro',
+            'slug': 'custom_pro',
+          },
+          'plans': [
+            {
+              'id': 10,
+              'name': 'Custom Pro',
+              'slug': 'custom_pro',
+              'price_inr': 4999,
+              'formatted_price': '₹4,999/mo',
+              'tagline': 'Best for custom studios',
+              'features': ['10 TB storage', 'Dedicated support', 'Custom watermark'],
+            },
+          ],
+        },
+      };
+
+      final sub = SubscriptionModel.fromJson(jsonMap);
+      expect(sub.availablePlans.length, 1);
+      expect(sub.availablePlans.first.name, 'Custom Pro');
+      expect(sub.availablePlans.first.resolvedPriceFormatted, '₹4,999/mo');
+      expect(sub.availablePlans.first.resolvedTagline, 'Best for custom studios');
+      expect(sub.availablePlans.first.resolvedFeatures.length, 3);
+      expect(sub.isCurrentPlan(sub.availablePlans.first), true);
+    });
   });
 
   group('SubscriptionApiService Integration Tests', () {

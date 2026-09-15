@@ -10,6 +10,9 @@ class SubscriptionPlanModel {
   final int maxTeamMembers;
   final num? priceInr;
   final String? formattedPrice;
+  final String? tagline;
+  final List<String> features;
+  final bool isPopular;
 
   const SubscriptionPlanModel({
     this.id,
@@ -23,11 +26,146 @@ class SubscriptionPlanModel {
     this.maxTeamMembers = 0,
     this.priceInr,
     this.formattedPrice,
+    this.tagline,
+    this.features = const [],
+    this.isPopular = false,
   });
 
   bool get isUnlimitedEvents => maxEvents == null;
 
+  String get resolvedTagline {
+    if (tagline != null && tagline!.isNotEmpty) return tagline!;
+    switch (slug.toLowerCase()) {
+      case 'starter':
+        return 'Best for: solo photographers';
+      case 'professional':
+      case 'pro':
+        return 'Best for: growing studios';
+      case 'studio':
+        return 'Best for: camera-to-cloud studio';
+      case 'enterprise':
+        return 'Best for: large scale agencies';
+      default:
+        return 'Best for: photography studios';
+    }
+  }
+
+  String get resolvedPriceFormatted {
+    if (formattedPrice != null && formattedPrice!.isNotEmpty) {
+      return formattedPrice!.endsWith('/mo') ? formattedPrice! : '$formattedPrice/mo';
+    }
+    if (priceInr != null) {
+      final formattedNum = priceInr!.toString().replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]},',
+          );
+      return '₹$formattedNum/mo';
+    }
+    return 'Free';
+  }
+
+  List<String> get resolvedFeatures {
+    if (features.isNotEmpty) return features;
+    final list = <String>[];
+    if (maxEvents == null) {
+      list.add('Unlimited events');
+    } else {
+      list.add('Up to $maxEvents events');
+    }
+
+    if (storageLabel != null && storageLabel!.isNotEmpty) {
+      list.add('$storageLabel storage');
+    }
+
+    if (ftpSftpEnabled) {
+      list.add('FTP/SFTP camera uploads');
+    }
+
+    if (teamMembersEnabled && maxTeamMembers > 0) {
+      list.add('Up to $maxTeamMembers team members');
+    }
+
+    if (slug.toLowerCase() == 'starter') {
+      list.add('Email support');
+    } else {
+      list.add('Priority support');
+    }
+
+    return list;
+  }
+
+  static const List<SubscriptionPlanModel> defaultPlans = [
+    SubscriptionPlanModel(
+      id: 1,
+      name: 'Starter',
+      slug: 'starter',
+      priceInr: 899,
+      formattedPrice: '₹899/mo',
+      tagline: 'Best for: solo photographers',
+      storageLabel: '100 GB',
+      storageBytes: 107374182400,
+      maxEvents: null,
+      ftpSftpEnabled: false,
+      teamMembersEnabled: false,
+      maxTeamMembers: 0,
+      features: [
+        'Unlimited events',
+        '100 GB storage',
+        'Email support',
+      ],
+    ),
+    SubscriptionPlanModel(
+      id: 2,
+      name: 'Professional',
+      slug: 'professional',
+      priceInr: 1499,
+      formattedPrice: '₹1,499/mo',
+      tagline: 'Best for: growing studios',
+      storageLabel: '500 GB',
+      storageBytes: 536870912000,
+      maxEvents: null,
+      ftpSftpEnabled: false,
+      teamMembersEnabled: true,
+      maxTeamMembers: 3,
+      isPopular: true,
+      features: [
+        'Unlimited events',
+        '500 GB storage',
+        'Up to 3 team members',
+        'Priority support',
+      ],
+    ),
+    SubscriptionPlanModel(
+      id: 3,
+      name: 'Studio',
+      slug: 'studio',
+      priceInr: 2099,
+      formattedPrice: '₹2,099/mo',
+      tagline: 'Best for: camera-to-cloud studio',
+      storageLabel: '1 TB',
+      storageBytes: 1099511627776,
+      maxEvents: null,
+      ftpSftpEnabled: true,
+      teamMembersEnabled: true,
+      maxTeamMembers: 10,
+      features: [
+        'Unlimited events',
+        '1TB storage',
+        'FTP/SFTP camera uploads',
+        'Up to 10 team members',
+        'Priority support',
+      ],
+    ),
+  ];
+
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
+    List<String> parsedFeatures = [];
+    if (json['features'] is List) {
+      parsedFeatures = (json['features'] as List)
+          .map((e) => e.toString())
+          .toList();
+    }
+
     return SubscriptionPlanModel(
       id: json['id'],
       name: json['name'] as String? ?? 'Free Plan',
@@ -42,6 +180,9 @@ class SubscriptionPlanModel {
       maxTeamMembers: json['max_team_members'] as int? ?? 0,
       priceInr: json['price_inr'] as num?,
       formattedPrice: json['formatted_price'] as String?,
+      tagline: json['tagline'] as String? ?? json['description'] as String?,
+      features: parsedFeatures,
+      isPopular: json['is_popular'] as bool? ?? false,
     );
   }
 
@@ -58,6 +199,9 @@ class SubscriptionPlanModel {
       'max_team_members': maxTeamMembers,
       'price_inr': priceInr,
       'formatted_price': formattedPrice,
+      'tagline': tagline,
+      'features': features,
+      'is_popular': isPopular,
     };
   }
 }
@@ -121,6 +265,7 @@ class SubscriptionModel {
   final DateTime? endDate;
   final SubscriptionPlanModel? plan;
   final SubscriptionUsageModel? usage;
+  final List<SubscriptionPlanModel> availablePlans;
 
   const SubscriptionModel({
     this.status = 'none',
@@ -136,12 +281,21 @@ class SubscriptionModel {
     this.endDate,
     this.plan,
     this.usage,
+    this.availablePlans = const [],
   });
 
   bool get isStorageWarning => (usage?.storagePercent ?? 0.0) >= 80.0;
   bool get isStorageCritical => (usage?.storagePercent ?? 0.0) >= 95.0;
   bool get isStorageExceeded => (usage?.storagePercent ?? 0.0) >= 100.0;
   bool get canCreateEvent => usage?.canCreateEvent ?? true;
+
+  bool isCurrentPlan(SubscriptionPlanModel p) {
+    if (plan == null) return false;
+    if (p.slug.isNotEmpty && plan!.slug.isNotEmpty) {
+      return p.slug.toLowerCase() == plan!.slug.toLowerCase();
+    }
+    return p.name.toLowerCase() == plan!.name.toLowerCase();
+  }
 
   String get statusLabel {
     switch (status.toLowerCase()) {
@@ -172,6 +326,31 @@ class SubscriptionModel {
       return null;
     }
 
+    List<SubscriptionPlanModel> parsedPlans = [];
+    if (data['plans'] is List && (data['plans'] as List).isNotEmpty) {
+      parsedPlans = (data['plans'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map((p) => SubscriptionPlanModel.fromJson(p))
+          .toList();
+    } else if (data['available_plans'] is List && (data['available_plans'] as List).isNotEmpty) {
+      parsedPlans = (data['available_plans'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map((p) => SubscriptionPlanModel.fromJson(p))
+          .toList();
+    } else if (data['all_plans'] is List && (data['all_plans'] as List).isNotEmpty) {
+      parsedPlans = (data['all_plans'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map((p) => SubscriptionPlanModel.fromJson(p))
+          .toList();
+    } else if (json['plans'] is List && (json['plans'] as List).isNotEmpty) {
+      parsedPlans = (json['plans'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map((p) => SubscriptionPlanModel.fromJson(p))
+          .toList();
+    } else {
+      parsedPlans = List<SubscriptionPlanModel>.from(SubscriptionPlanModel.defaultPlans);
+    }
+
     return SubscriptionModel(
       status: data['status'] as String? ?? 'none',
       isActive: data['is_active'] as bool? ?? false,
@@ -190,6 +369,7 @@ class SubscriptionModel {
       usage: data['usage'] is Map<String, dynamic>
           ? SubscriptionUsageModel.fromJson(data['usage'] as Map<String, dynamic>)
           : null,
+      availablePlans: parsedPlans,
     );
   }
 
@@ -208,6 +388,7 @@ class SubscriptionModel {
       'end_date': endDate?.toIso8601String(),
       'plan': plan?.toJson(),
       'usage': usage?.toJson(),
+      'available_plans': availablePlans.map((p) => p.toJson()).toList(),
     };
   }
 }
