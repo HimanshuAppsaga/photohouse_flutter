@@ -1092,18 +1092,18 @@ class _DynamicPlansSliderState extends State<_DynamicPlansSlider> {
                     ),
                   )
                 : OutlinedButton(
-                    onPressed: () => widget.onSwitchPlan(plan),
+                    onPressed: null,
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: palette.border, width: 1.2),
+                      side: BorderSide(color: palette.border.withValues(alpha: 0.6), width: 1.2),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      foregroundColor: palette.textMuted,
+                      disabledForegroundColor: palette.textMuted.withValues(alpha: 0.6),
                     ),
                     child: Text(
                       'Switch via support',
                       style: TextStyle(
-                        color: palette.textMuted,
+                        color: palette.textMuted.withValues(alpha: 0.6),
                         fontWeight: FontWeight.w600,
                         fontSize: 13.5,
                       ),
