@@ -30,8 +30,9 @@ class EventsDashboardScreen extends StatefulWidget {
 class _EventsDashboardScreenState extends State<EventsDashboardScreen> {
   late final EventsApiService _eventsApiService;
   late final SubscriptionApiService _subscriptionApiService;
-  List<EventItem> _events = EventItem.sampleEvents;
+  List<EventItem> _events = const [];
   String _searchQuery = '';
+  bool _isLoading = true;
   bool _isRefreshing = false;
   bool _isGridView = false;
 
@@ -49,6 +50,10 @@ class _EventsDashboardScreenState extends State<EventsDashboardScreen> {
       setState(() {
         _isRefreshing = true;
       });
+    } else if (_events.isEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
     }
 
     try {
@@ -56,9 +61,8 @@ class _EventsDashboardScreenState extends State<EventsDashboardScreen> {
 
       if (mounted) {
         setState(() {
-          _events = response.events.isNotEmpty
-              ? response.events
-              : EventItem.sampleEvents;
+          _events = response.events;
+          _isLoading = false;
           _isRefreshing = false;
         });
 
@@ -73,15 +77,15 @@ class _EventsDashboardScreenState extends State<EventsDashboardScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _events = EventItem.sampleEvents;
+          _isLoading = false;
           _isRefreshing = false;
         });
 
         if (isRefresh) {
           AppToast.show(
             context,
-            'Using cached events (${e.toString().replaceAll("Exception: ", "")})',
-            type: ToastType.info,
+            'Failed to load events (${e.toString().replaceAll("Exception: ", "")})',
+            type: ToastType.error,
           );
         }
       }
@@ -198,7 +202,16 @@ class _EventsDashboardScreenState extends State<EventsDashboardScreen> {
                 _buildSearchBarWithToggle(palette, filtered.length),
                 const SizedBox(height: 20),
                 // Event Content
-                filtered.isEmpty
+                _isLoading
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 48.0),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: palette.accentAmber,
+                          ),
+                        ),
+                      )
+                    : filtered.isEmpty
                     ? _buildEmptyEventsView(palette)
                     : _isGridView
                     ? _buildGridView(palette, filtered)
@@ -491,31 +504,40 @@ class _EventsDashboardScreenState extends State<EventsDashboardScreen> {
     );
   }
 
-  // Empty Search View
+  // Empty View
   Widget _buildEmptyEventsView(AppThemePalette palette) {
+    final isSearching = _searchQuery.trim().isNotEmpty;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
       decoration: BoxDecoration(
         color: palette.cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: palette.border),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.search_off_rounded, size: 48, color: palette.textMuted),
-          const SizedBox(height: 12),
+          Icon(
+            isSearching ? Icons.search_off_rounded : Icons.cloud_outlined,
+            size: 52,
+            color: palette.textMuted.withValues(alpha: 0.6),
+          ),
+          const SizedBox(height: 16),
           Text(
-            'No matching events found',
+            isSearching ? 'No matching events found' : 'No events found',
             style: TextStyle(
               color: palette.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
-            'Try adjusting your search query.',
+            isSearching
+                ? 'Try adjusting your search query.'
+                : 'Please create an event on the PhotoHouse web portal first.',
+            textAlign: TextAlign.center,
             style: TextStyle(color: palette.textMuted, fontSize: 13),
           ),
         ],
