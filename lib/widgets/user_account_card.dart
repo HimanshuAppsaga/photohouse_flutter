@@ -67,7 +67,9 @@ class UserAccountCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: palette.accentAmber.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: palette.accentAmber.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: palette.accentAmber.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Icon(
                       Icons.person_rounded,
@@ -88,7 +90,10 @@ class UserAccountCard extends StatelessWidget {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: palette.accentAmber.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
@@ -116,10 +121,7 @@ class UserAccountCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      palette.accentOrange,
-                      palette.accentAmber,
-                    ],
+                    colors: [palette.accentOrange, palette.accentAmber],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -176,7 +178,9 @@ class UserAccountCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: palette.successGreen.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: palette.successGreen.withValues(alpha: 0.4)),
+                  border: Border.all(
+                    color: palette.successGreen.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -216,7 +220,9 @@ class UserAccountCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: palette.dangerRed.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: palette.dangerRed.withValues(alpha: 0.25)),
+                border: Border.all(
+                  color: palette.dangerRed.withValues(alpha: 0.25),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

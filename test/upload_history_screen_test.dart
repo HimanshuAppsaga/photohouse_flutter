@@ -15,8 +15,9 @@ class FakeSecureStorageService extends SecureStorageService {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('UploadHistoryScreen displays sessions and filters correctly',
-      (WidgetTester tester) async {
+  testWidgets('UploadHistoryScreen displays sessions and filters correctly', (
+    WidgetTester tester,
+  ) async {
     final mockClient = MockClient((request) async {
       return http.Response(
         jsonEncode({
@@ -32,9 +33,9 @@ void main() {
               'status': 'completed',
               'created_at': '2026-09-03T10:00:00Z',
               'updated_at': '2026-09-03T10:20:00Z',
-            }
+            },
           ],
-          'meta': {'next_cursor': null}
+          'meta': {'next_cursor': null},
         }),
         200,
       );
@@ -46,9 +47,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: UploadHistoryScreen(uploadApiService: service),
-      ),
+      MaterialApp(home: UploadHistoryScreen(uploadApiService: service)),
     );
 
     await tester.pumpAndSettle();

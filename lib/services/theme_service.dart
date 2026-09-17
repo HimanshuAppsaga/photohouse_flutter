@@ -52,6 +52,19 @@ class ThemeService {
     return Theme.of(context).brightness == Brightness.dark;
   }
 
+  /// Returns true if the given or current time is daytime (default 6 AM to 6 PM)
+  bool isDaytime({DateTime? now, int dayStartHour = 6, int nightStartHour = 18}) {
+    final time = now ?? DateTime.now();
+    return time.hour >= dayStartHour && time.hour < nightStartHour;
+  }
+
+  /// Calculates ThemeMode based on current time (Light during daytime, Dark during nighttime)
+  ThemeMode getTimeBasedThemeMode({DateTime? now, int dayStartHour = 6, int nightStartHour = 18}) {
+    return isDaytime(now: now, dayStartHour: dayStartHour, nightStartHour: nightStartHour)
+        ? ThemeMode.light
+        : ThemeMode.dark;
+  }
+
   ThemeMode _mapOptionToMode(String option) {
     switch (option.toLowerCase()) {
       case 'light':

@@ -7,11 +7,7 @@ class UploadHistoryScreen extends StatefulWidget {
   final String? eventUuid;
   final UploadApiService? uploadApiService;
 
-  const UploadHistoryScreen({
-    super.key,
-    this.eventUuid,
-    this.uploadApiService,
-  });
+  const UploadHistoryScreen({super.key, this.eventUuid, this.uploadApiService});
 
   @override
   State<UploadHistoryScreen> createState() => _UploadHistoryScreenState();
@@ -28,8 +24,10 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
   String? _nextCursor;
 
   // Selected Filters
-  final String _selectedStatusFilter = 'all'; // 'all', 'pending', 'active', 'completed', 'failed'
-  final String _selectedSourceFilter = 'all'; // 'all', 'desktop_agent', 'browser', 'ftp'
+  final String _selectedStatusFilter =
+      'all'; // 'all', 'pending', 'active', 'completed', 'failed'
+  final String _selectedSourceFilter =
+      'all'; // 'all', 'desktop_agent', 'browser', 'ftp'
 
   @override
   void initState() {
@@ -48,8 +46,12 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
     }
 
     try {
-      final statusParam = _selectedStatusFilter == 'all' ? null : _selectedStatusFilter;
-      final sourceParam = _selectedSourceFilter == 'all' ? null : _selectedSourceFilter;
+      final statusParam = _selectedStatusFilter == 'all'
+          ? null
+          : _selectedStatusFilter;
+      final sourceParam = _selectedSourceFilter == 'all'
+          ? null
+          : _selectedSourceFilter;
 
       final response = await _apiService.getUploadSessions(
         eventUuid: widget.eventUuid,
@@ -113,7 +115,11 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
               border: Border.all(color: palette.border),
             ),
             child: IconButton(
-              icon: Icon(Icons.arrow_back_rounded, color: palette.textPrimary, size: 18),
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                color: palette.textPrimary,
+                size: 18,
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -146,7 +152,11 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
               border: Border.all(color: palette.border),
             ),
             child: IconButton(
-              icon: Icon(Icons.refresh_rounded, color: palette.accentAmber, size: 20),
+              icon: Icon(
+                Icons.refresh_rounded,
+                color: palette.accentAmber,
+                size: 20,
+              ),
               tooltip: 'Refresh Sessions',
               onPressed: () => _loadSessions(refresh: true),
             ),
@@ -177,34 +187,29 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
               if (_isLoading)
                 SliverFillRemaining(
                   child: Center(
-                    child: CircularProgressIndicator(color: palette.accentAmber),
+                    child: CircularProgressIndicator(
+                      color: palette.accentAmber,
+                    ),
                   ),
                 )
               else if (_errorMessage != null)
-                SliverFillRemaining(
-                  child: _buildErrorWidget(),
-                )
+                SliverFillRemaining(child: _buildErrorWidget())
               else if (_sessions.isEmpty)
-                SliverFillRemaining(
-                  child: _buildEmptyWidget(),
-                )
+                SliverFillRemaining(child: _buildEmptyWidget())
               else
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (index == _sessions.length) {
-                          return _buildPaginationFooter();
-                        }
-                        final session = _sessions[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 14.0),
-                          child: _buildSessionCard(session),
-                        );
-                      },
-                      childCount: _sessions.length + 1,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      if (index == _sessions.length) {
+                        return _buildPaginationFooter();
+                      }
+                      final session = _sessions[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 14.0),
+                        child: _buildSessionCard(session),
+                      );
+                    }, childCount: _sessions.length + 1),
                   ),
                 ),
             ],
@@ -250,7 +255,11 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
                   color: palette.accentAmber.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.analytics_outlined, color: palette.accentAmber, size: 16),
+                child: Icon(
+                  Icons.analytics_outlined,
+                  color: palette.accentAmber,
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
@@ -399,7 +408,9 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.25)),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.25),
+                        ),
                       ),
                       child: Center(
                         child: Icon(
@@ -442,11 +453,16 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: statusColor.withValues(alpha: 0.35)),
+                  border: Border.all(
+                    color: statusColor.withValues(alpha: 0.35),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -478,7 +494,10 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
                 'Event: ${session.eventUuid.substring(0, session.eventUuid.length > 8 ? 8 : session.eventUuid.length)}...',
               ),
               if (session.albumId != null)
-                _buildBadge(Icons.photo_album_rounded, 'Album #${session.albumId}'),
+                _buildBadge(
+                  Icons.photo_album_rounded,
+                  'Album #${session.albumId}',
+                ),
               _buildBadge(Icons.devices_rounded, session.formattedSource),
             ],
           ),
@@ -520,13 +539,20 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    Icon(Icons.insert_drive_file_outlined, color: palette.textMuted, size: 13),
+                    Icon(
+                      Icons.insert_drive_file_outlined,
+                      color: palette.textMuted,
+                      size: 13,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         'Files: ${session.completedFiles} / ${session.totalFiles} completed'
                         '${session.failedFiles > 0 ? " (${session.failedFiles} failed)" : ""}',
-                        style: TextStyle(color: palette.textSecondary, fontSize: 12),
+                        style: TextStyle(
+                          color: palette.textSecondary,
+                          fontSize: 12,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -536,7 +562,11 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
               const SizedBox(width: 8),
               Row(
                 children: [
-                  Icon(Icons.schedule_rounded, color: palette.textMuted, size: 12),
+                  Icon(
+                    Icons.schedule_rounded,
+                    color: palette.textMuted,
+                    size: 12,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     session.createdAt.length >= 10
@@ -569,7 +599,11 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
           const SizedBox(width: 5),
           Text(
             text,
-            style: TextStyle(color: palette.textSecondary, fontSize: 11, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: palette.textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -620,7 +654,11 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline_rounded, color: palette.dangerRed, size: 48),
+            Icon(
+              Icons.error_outline_rounded,
+              color: palette.dangerRed,
+              size: 48,
+            ),
             const SizedBox(height: 12),
             Text(
               'Failed to load upload history',
@@ -677,5 +715,3 @@ class _UploadHistoryScreenState extends State<UploadHistoryScreen> {
     );
   }
 }
-
-
