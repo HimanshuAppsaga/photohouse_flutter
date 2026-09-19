@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/platform_branding_model.dart';
 import '../navigation/main_navigation_shell.dart';
 import '../services/auth_service.dart';
@@ -24,6 +25,30 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _rememberMe = true;
+  DateTime? _lastBackPressTime;
+
+  void _handleBackPress(bool didPop) {
+    if (didPop) return;
+
+    final currentFocus = FocusScope.of(context);
+    if (currentFocus.focusedChild != null) {
+      currentFocus.unfocus();
+      return;
+    }
+
+    final now = DateTime.now();
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+      _lastBackPressTime = now;
+      AppToast.show(
+        context,
+        'Press back again to exit',
+        type: ToastType.info,
+      );
+    } else {
+      SystemNavigator.pop();
+    }
+  }
 
   Future<void> _login() async {
     final email = _emailController.text.trim();
@@ -94,25 +119,31 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final palette = AppThemePalette.of(context);
-    return Scaffold(
-      backgroundColor: palette.bgDarker,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 32),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) => _handleBackPress(didPop),
+      child: Scaffold(
+        backgroundColor: palette.bgDarker,
+        resizeToAvoidBottomInset: false,
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 32),
 
-                  _buildLoginFormCard(),
-                  const SizedBox(height: 24),
+                    _buildLoginFormCard(),
+                    const SizedBox(height: 24),
 
-                  _buildFooter(),
-                ],
+                    _buildFooter(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -354,6 +385,8 @@ class _LoginScreenState extends State<LoginScreen> {
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
+        enableSuggestions: !obscureText,
+        autocorrect: !obscureText,
         style: TextStyle(color: palette.textPrimary, fontSize: 14),
         decoration: InputDecoration(
           hintText: hintText,

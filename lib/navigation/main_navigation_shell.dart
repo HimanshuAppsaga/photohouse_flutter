@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/user_model.dart';
 import '../screens/events_dashboard_screen.dart';
 import '../screens/upload_queue_screen.dart';
 import '../screens/subscription_screen.dart';
 import '../screens/preferences_screen.dart';
+import '../utils/app_toast.dart';
 import '../widgets/modern_tab_bar.dart';
 
 class MainNavigationShell extends StatefulWidget {
@@ -27,6 +29,7 @@ class MainNavigationShell extends StatefulWidget {
 
 class _MainNavigationShellState extends State<MainNavigationShell> {
   late int _currentIndex;
+  DateTime? _lastBackPressTime;
 
   @override
   void initState() {
@@ -38,6 +41,32 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     setState(() {
       _currentIndex = index;
     });
+  }
+
+  void _handleBackPress(bool didPop) {
+    if (didPop) return;
+
+    // If not on the primary Events tab, back button returns to Events tab
+    if (_currentIndex != 0) {
+      setState(() {
+        _currentIndex = 0;
+      });
+      return;
+    }
+
+    // On primary tab: double-back to exit confirmation
+    final now = DateTime.now();
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+      _lastBackPressTime = now;
+      AppToast.show(
+        context,
+        'Press back again to exit',
+        type: ToastType.info,
+      );
+    } else {
+      SystemNavigator.pop();
+    }
   }
 
   @override
@@ -72,16 +101,20 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       ),
     ];
 
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
-      // Ultra-Modern Floating Bottom Tab Dock
-      bottomNavigationBar: ModernFloatingBottomDock(
-        selectedIndex: _currentIndex,
-        items: tabItems,
-        onTabSelected: _onTabSelected,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) => _handleBackPress(didPop),
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: pages,
+        ),
+        // Ultra-Modern Floating Bottom Tab Dock
+        bottomNavigationBar: ModernFloatingBottomDock(
+          selectedIndex: _currentIndex,
+          items: tabItems,
+          onTabSelected: _onTabSelected,
+        ),
       ),
     );
   }
